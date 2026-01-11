@@ -6,28 +6,20 @@ namespace FinanceiroBackend.Controllers;
 [Route("api/[controller]")]
 public class FinanceiroController : ControllerBase
 {
-    [HttpGet("extrato-completo")]
-    public IActionResult Get()
+    [HttpGet("analytics")]
+    public IActionResult GetAnalytics()
     {
-        var lista = new List<Transacao>
-        {
-            new Transacao { Id = 1, Descricao = "Salário", Valor = 5000 },
-            new Transacao { Id = 2, Descricao = "Aluguel", Valor = -1200 },
-            new Transacao { Id = 3, Descricao = "Mercado", Valor = -450.50 }
+        // Simulando dados que viriam de um Banco de Dados
+        var historico = new[] {
+            new { Dia = "Seg", Valor = 1200 },
+            new { Dia = "Ter", Valor = 1800 },
+            new { Dia = "Qua", Valor = 1400 },
+            new { Dia = "Qui", Valor = 3200 },
+            new { Dia = "Sex", Valor = 2900 },
+            new { Dia = "Sab", Valor = 4500 },
+            new { Dia = "Dom", Valor = 4100 }
         };
 
-        // Lógica de Negócio (Business Logic): Somando as bolinhas
-        double saldoFinal = 0;
-        foreach (var t in lista)
-        {
-            saldoFinal += t.Valor;
-        }
-
-        // Retorna um objeto anônimo com a lista e o saldo processado
-        return Ok(new { 
-            Mensagem = "Relatório Gerado com Sucesso",
-            Transacoes = lista, 
-            SaldoTotal = saldoFinal 
-        });
+        return Ok(historico); // Retorna a lista organizada
     }
 }

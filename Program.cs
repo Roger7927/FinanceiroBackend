@@ -1,22 +1,15 @@
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Adiciona o suporte para os Controllers (Bolinhas de lógica)
+// --- COPIE ESTA LINHA ABAIXO (Configura a permissão) ---
+builder.Services.AddCors(options => options.AddPolicy("LiberarGeral", 
+    p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+
 builder.Services.AddControllers();
-
-// 2. Adiciona o gerador do Swagger (O "Cardápio" da nossa API)
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 var app = builder.Build();
 
-// 3. Ativa a interface visual (Swagger) apenas quando estivermos estudando/desenvolvendo
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(); // Aqui é onde a mágica da página visual acontece
-}
+// --- COPIE ESTA LINHA ABAIXO (Ativa a permissão) ---
+app.UseCors("LiberarGeral");
 
 app.UseAuthorization();
 app.MapControllers();
-
 app.Run();

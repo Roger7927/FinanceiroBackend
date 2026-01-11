@@ -2,45 +2,62 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Financeiro Pro - Dashboard</title>
+    <title>Financeiro Pro - Neon Analytics</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background-color: #1e1e1e; color: white; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 50px; }
-        .caixa-grafico { width: 450px; margin: 0 auto; background: #2d2d2d; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h1 { color: #4ec9b0; }
+        body { background-color: #0b0e14; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
+        .chart-container { width: 80%; max-width: 800px; background: #161b22; padding: 20px; border-radius: 15px; border: 1px solid #30363d; box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); }
+        h1 { color: #58a6ff; text-shadow: 0 0 10px #58a6ff; }
     </style>
 </head>
 <body>
-    <h1>📊 Meu Dashboard Financeiro</h1>
-    <p>Visualização em tempo real das fatias de orçamento</p>
-
-    <div class="caixa-grafico">
-        <canvas id="graficoPizza"></canvas>
+    <h1>📈 Fluxo de Caixa Neon</h1>
+    <div class="chart-container">
+        <canvas id="neonChart"></canvas>
     </div>
 
     <script>
-        // Simulando os dados que sua API gera (5000 de entrada e 2000 de gasto)
-        const entradas = 5000;
-        const saidas = 2000;
+        async function carregarDados() {
+            // A "Ponte de Ouro" (Fetch): Busca os dados na sua API local
+            const response = await fetch('http://localhost:5079/api/Financeiro/analytics');
+            const dados = await response.json();
 
-        const ctx = document.getElementById('graficoPizza').getContext('2d');
-        new Chart(ctx, {
-            type: 'pie', // Tipo de gráfico: Pizza
-            data: {
-                labels: ['Ganhos (Entradas)', 'Gastos (Saídas)'],
-                datasets: [{
-                    data: [entradas, saidas],
-                    backgroundColor: ['#4ec9b0', '#f44336'], // Verde e Vermelho
-                    borderColor: '#2d2d2d',
-                    borderWidth: 5
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: { labels: { color: 'white', font: { size: 14 } } }
+            const labels = dados.map(item => item.dia);
+            const valores = dados.map(item => item.valor);
+
+            const ctx = document.getElementById('neonChart').getContext('2d');
+            
+            // Criando o gradiente Neon (O brilho que você pediu)
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(0, 242, 255, 0.5)');
+            gradient.addColorStop(1, 'rgba(0, 242, 255, 0)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Saldo Disponível (R$)',
+                        data: valores,
+                        borderColor: '#00f2ff',
+                        borderWidth: 3,
+                        backgroundColor: gradient,
+                        fill: true,
+                        tension: 0.4,
+                        pointHoverRadius: 10,
+                        pointBackgroundColor: '#fff'
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: '#30363d' }, ticks: { color: '#8b949e' } },
+                        x: { grid: { display: false }, ticks: { color: '#8b949e' } }
+                    }
                 }
-            }
-        });
+            });
+        }
+        carregarDados();
     </script>
 </body>
 </html>

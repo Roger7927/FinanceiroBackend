@@ -1,4 +1,5 @@
 # 📊 Sistema de Gestão Financeira v2.0
+[🚀 Clique aqui para ver o Dashboard Visual](index.html)
 > **Status do Projeto:** Production Ready 🚀
 
 ### 🛠 Stack Tecnológica

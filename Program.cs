@@ -1,15 +1,25 @@
 var builder = WebApplication.CreateBuilder(args);
 
-// --- COPIE ESTA LINHA ABAIXO (Configura a permissão) ---
-builder.Services.AddCors(options => options.AddPolicy("LiberarGeral", 
-    p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+// 1. CONFIGURAÇÃO DO CORS (Permite a conversa com o GitHub)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("LiberarGeral", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddControllers();
+
 var app = builder.Build();
 
-// --- COPIE ESTA LINHA ABAIXO (Ativa a permissão) ---
+// 2. ATIVAÇÃO (Deve vir antes do MapControllers)
 app.UseCors("LiberarGeral");
 
 app.UseAuthorization();
+
 app.MapControllers();
+
 app.Run();

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc; // 1. MANUAL NO TOPO (Sempre na Linha 1)
 
 namespace FinanceiroBackend.Controllers
 {
@@ -6,10 +6,9 @@ namespace FinanceiroBackend.Controllers
     [Route("api/[controller]")]
     public class FinanceiroController : ControllerBase
     {
-        // Ferramenta para ler o appsettings.json
         private readonly IConfiguration _config;
 
-        // Construtor: Aqui o C# entrega a ferramenta para a gente usar
+        // 2. CONSTRUTOR: Recebe a chave do cofre
         public FinanceiroController(IConfiguration config)
         {
             _config = config;
@@ -18,15 +17,25 @@ namespace FinanceiroBackend.Controllers
         [HttpGet("analytics")]
         public IActionResult GetAnalytics()
         {
+            var dataHora = DateTime.Now.ToLongTimeString();
             var chaveRecebida = Request.Headers["X-Admin-Key"].ToString();
-            
-            // Lendo a chave que você salvou no arquivo JSON
-            var chaveCorreta = _config["SecuritySettings:ApiKey"];
 
-            if (chaveRecebida != chaveCorreta)
+            // 3. LOG DE ENTRADA
+            Console.WriteLine($"\n[MONITORAMENTO] --- Nova requisição: {dataHora} ---");
+
+            // 4. VERIFICAÇÃO DE SEGURANÇA
+            if (chaveRecebida != _config["SecuritySettings:ApiKey"])
             {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("⚠️ BLOQUEADO: Tentativa de acesso com chave inválida!");
+                Console.ResetColor();
                 return Unauthorized(new { mensagem = "Acesso Negado!" });
             }
+
+            // 5. LOG DE SUCESSO EM VERDE
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("✅ SUCESSO: Chave validada. Liberando as bolinhas de dados...");
+            Console.ResetColor();
 
             // DADOS DOS GRÁFICOS (Suas bolinhas coloridas)
             var fluxoCaixa = new[] {

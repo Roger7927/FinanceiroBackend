@@ -35,3 +35,12 @@
 * **Web API (ASP.NET Core)**
 * **Versionamento de Código (Git/GitHub)**
 * **Injeção de Dependências e Middleware**
+---
+
+## 🛡️ Atualizações de Infraestrutura e Segurança (Janeiro/2026)
+Nesta etapa, foquei em estabilizar a comunicação entre o Frontend (GitHub Pages) e o Backend local, resolvendo gargalos críticos de arquitetura:
+
+* **Correção de CORS:** Implementada política de acesso no `Program.cs` para permitir requisições cross-origin.
+* **Ajuste de Endpoints:** Migração e fixação do tráfego para a porta `5100` via `launchSettings.json`.
+* **Debug de Conectividade:** Resolução de erro de runtime (Line 25) no servidor Kestrel.
+* **Sincronização Ativa:** Dashboard integrado com sucesso, realizando o fetch de dados em tempo real.

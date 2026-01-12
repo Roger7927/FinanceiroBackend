@@ -1,47 +1,112 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Financeiro Neon</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financeiro Ultra Pro | ADS Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background-color: #0b0e14; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
-        .box { width: 80%; max-width: 800px; background: #161b22; padding: 20px; border-radius: 15px; border: 1px solid #30363d; margin-top: 50px; }
-        h1 { color: #58a6ff; }
+        :root { --neon-blue: #00f2ff; --bg-dark: #0d1117; --card-bg: #161b22; }
+        body { background-color: var(--bg-dark); color: #c9d1d9; font-family: 'Segoe UI', sans-serif; padding: 40px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto 30px; }
+        h1 { color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); margin: 0; }
+
+        .btn-refresh { 
+            background: transparent; border: 2px solid var(--neon-blue); color: var(--neon-blue);
+            padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: bold;
+            transition: 0.3s; box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+        }
+        .btn-refresh:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 25px var(--neon-blue); }
+
+        /* Grade para os gráficos ficarem lado a lado */
+        .dashboard-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 30px; 
+            max-width: 1200px; margin: 0 auto; 
+        }
+        .chart-card { 
+            background: var(--card-bg); padding: 25px; border-radius: 20px; 
+            border: 1px solid #30363d; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        canvas { max-height: 400px; }
     </style>
 </head>
 <body>
-    <h1>📊 Fluxo de Caixa Neon</h1>
-    <div class="box">
-        <canvas id="neonChart"></canvas>
+
+    <div class="header">
+        <h1>🚀 Financeiro ADS Pro</h1>
+        <button class="btn-refresh" onclick="carregarDados()">🔄 ATUALIZAR DADOS</button>
     </div>
+
+    <div class="dashboard-grid">
+        <div class="chart-card">
+            <h3 style="text-align: center; color: #58a6ff;">📈 Fluxo de Caixa (C# Live)</h3>
+            <canvas id="lineChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+            <h3 style="text-align: center; color: #d2a8ff;">🍕 Distribuição de Gastos</h3>
+            <canvas id="pieChart"></canvas>
+        </div>
+    </div>
+
     <script>
+        let myLineChart, myPieChart;
+
         async function carregarDados() {
-            let l = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
-            let v = [1200, 1800, 1400, 3200, 2900, 4500, 4100];
+            let labels, valores;
             try {
-                const r = await fetch('http://localhost:5079/api/Financeiro/analytics');
-                const d = await r.json();
-                l = d.map(i => i.dia);
-                v = d.map(i => i.valor);
-            } catch (e) { console.warn("Backend offline, usando reserva."); }
-            
-            const ctx = document.getElementById('neonChart').getContext('2d');
-            new Chart(ctx, {
+                // Conectando com o seu motor C# local
+                const response = await fetch('http://localhost:5079/api/Financeiro/analytics');
+                const dados = await response.json();
+                labels = dados.map(item => item.dia);
+                valores = dados.map(item => item.valor);
+            } catch (error) {
+                // Fallback (Reserva) caso o motor esteja desligado
+                labels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
+                valores = [1200, 1800, 1400, 3200, 2900, 4500, 4100];
+            }
+            atualizarGraficos(labels, valores);
+        }
+
+        function atualizarGraficos(labels, valores) {
+            const ctxLine = document.getElementById('lineChart').getContext('2d');
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+
+            // Se os gráficos já existem, destrói para criar novos (evita sobreposição)
+            if (myLineChart) myLineChart.destroy();
+            if (myPieChart) myPieChart.destroy();
+
+            // Gráfico de Linha Neon
+            myLineChart = new Chart(ctxLine, {
                 type: 'line',
                 data: {
-                    labels: l,
+                    labels: labels,
                     datasets: [{
                         label: 'Saldo (R$)',
-                        data: v,
+                        data: valores,
                         borderColor: '#00f2ff',
-                        tension: 0.4,
-                        fill: true,
-                        backgroundColor: 'rgba(0, 242, 255, 0.1)'
+                        backgroundColor: 'rgba(0, 242, 255, 0.1)',
+                        fill: true, tension: 0.4, borderWidth: 4
+                    }]
+                },
+                options: { plugins: { legend: { display: false } } }
+            });
+
+            // NOVO: Gráfico de Pizza Profissional
+            myPieChart = new Chart(ctxPie, {
+                type: 'pie',
+                data: {
+                    labels: ['Aluguel', 'Nuvem (Azure)', 'Salários', 'Marketing'],
+                    datasets: [{
+                        data: [3000, 1500, 5000, 2000],
+                        backgroundColor: ['#ff7b72', '#79c0ff', '#d2a8ff', '#f0883e'],
+                        borderWidth: 0
                     }]
                 }
             });
         }
+
         carregarDados();
     </script>
 </body>

@@ -1,25 +1,52 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace FinanceiroBackend.Controllers;
-
-[ApiController]
-[Route("api/[controller]")]
-public class FinanceiroController : ControllerBase
+namespace FinanceiroBackend.Controllers
 {
-    [HttpGet("analytics")]
-    public IActionResult GetAnalytics()
+    [ApiController]
+    [Route("api/[controller]")]
+    public class FinanceiroController : ControllerBase
     {
-        // Simulando dados que viriam de um Banco de Dados
-        var historico = new[] {
-            new { Dia = "Seg", Valor = 1200 },
-            new { Dia = "Ter", Valor = 1800 },
-            new { Dia = "Qua", Valor = 1400 },
-            new { Dia = "Qui", Valor = 3200 },
-            new { Dia = "Sex", Valor = 2900 },
-            new { Dia = "Sab", Valor = 4500 },
-            new { Dia = "Dom", Valor = 4100 }
-        };
+        // Ferramenta para ler o appsettings.json
+        private readonly IConfiguration _config;
 
-        return Ok(historico); // Retorna a lista organizada
+        // Construtor: Aqui o C# entrega a ferramenta para a gente usar
+        public FinanceiroController(IConfiguration config)
+        {
+            _config = config;
+        }
+
+        [HttpGet("analytics")]
+        public IActionResult GetAnalytics()
+        {
+            var chaveRecebida = Request.Headers["X-Admin-Key"].ToString();
+            
+            // Lendo a chave que você salvou no arquivo JSON
+            var chaveCorreta = _config["SecuritySettings:ApiKey"];
+
+            if (chaveRecebida != chaveCorreta)
+            {
+                return Unauthorized(new { mensagem = "Acesso Negado!" });
+            }
+
+            // DADOS DOS GRÁFICOS (Suas bolinhas coloridas)
+            var fluxoCaixa = new[] {
+                new { dia = "Seg", valor = 1200 },
+                new { dia = "Ter", valor = 1800 },
+                new { dia = "Qua", valor = 1400 },
+                new { dia = "Qui", valor = 3200 },
+                new { dia = "Sex", valor = 2900 },
+                new { dia = "Sab", valor = 9000 },
+                new { dia = "Don", valor = 4100 }
+            };
+
+            var distribuicaoGastos = new[] {
+                new { categoria = "Aluguel", valor = 3000 },
+                new { categoria = "Cloud Azure", valor = 1500 },
+                new { categoria = "Salários", valor = 5000 },
+                new { categoria = "Marketing", valor = 2000 }
+            };
+
+            return Ok(new { fluxo = fluxoCaixa, gastos = distribuicaoGastos });
+        }
     }
 }

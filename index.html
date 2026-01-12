@@ -1,19 +1,61 @@
-async function carregarDados() {
-    let labels, valores;
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financeiro Pro - Neon Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background-color: #0b0e14; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .chart-container { width: 80%; max-width: 800px; background: #161b22; padding: 20px; border-radius: 15px; border: 1px solid #30363d; box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); }
+        h1 { color: #58a6ff; text-shadow: 0 0 10px #58a6ff; }
+    </style>
+</head>
+<body>
+    <h1>📈 Fluxo de Caixa Neon</h1>
+    <div class="chart-container">
+        <canvas id="neonChart"></canvas>
+    </div>
 
-    try {
-        // Tenta buscar no seu motor C# local
-        const response = await fetch('http://localhost:5079/api/Financeiro/analytics');
-        const dados = await response.json();
-        labels = dados.map(item => item.dia);
-        valores = dados.map(item => item.valor);
-        console.log("Dados carregados do Backend C#! 🚀");
-    } catch (error) {
-        // Se o motor estiver desligado, usa esses dados de reserva (Contingência)
-        console.warn("Motor C# offline. Usando dados de reserva.");
-        labels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
-        valores = [1200, 1800, 1400, 3200, 2900, 4500, 4100];
-    }
+    <script>
+        async function carregarDados() {
+            let labels, valores;
+            try {
+                const response = await fetch('http://localhost:5079/api/Financeiro/analytics');
+                const dados = await response.json();
+                labels = dados.map(item => item.dia);
+                valores = dados.map(item => item.valor);
+            } catch (error) {
+                // Dados de reserva (Fallback) caso o C# esteja offline
+                labels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
+                valores = [1200, 1800, 1400, 3200, 2900, 4500, 4100];
+            }
+            renderizarGrafico(labels, valores);
+        }
 
-    renderizarGrafico(labels, valores);
-}
+        function renderizarGrafico(l, v) {
+            const ctx = document.getElementById('neonChart').getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(0, 242, 255, 0.5)');
+            gradient.addColorStop(1, 'rgba(0, 242, 255, 0)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: l,
+                    datasets: [{
+                        label: 'Saldo Disponível (R$)',
+                        data: v,
+                        borderColor: '#00f2ff',
+                        borderWidth: 3,
+                        backgroundColor: gradient,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                }
+            });
+        }
+        carregarDados();
+    </script>
+</body>
+</html>

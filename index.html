@@ -2,111 +2,75 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Financeiro Ultra Pro | ADS Dashboard</title>
+    <title>ADS Cyber-Finance Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --neon-blue: #00f2ff; --bg-dark: #0d1117; --card-bg: #161b22; }
-        body { background-color: var(--bg-dark); color: #c9d1d9; font-family: 'Segoe UI', sans-serif; padding: 40px; }
+        :root { --neon: #00f2ff; --purple: #d2a8ff; --dark: #05070a; }
+        body { background: var(--dark); color: #fff; font-family: 'Orbitron', sans-serif; padding: 40px; }
         
-        .header { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto 30px; }
-        h1 { color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); margin: 0; }
-
-        .btn-refresh { 
-            background: transparent; border: 2px solid var(--neon-blue); color: var(--neon-blue);
-            padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: bold;
-            transition: 0.3s; box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+        /* Efeito de brilho pulsante no título */
+        h1 { 
+            color: var(--neon); text-align: center; text-transform: uppercase;
+            text-shadow: 0 0 10px var(--neon), 0 0 20px var(--neon);
+            animation: pulse 2s infinite; 
         }
-        .btn-refresh:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 25px var(--neon-blue); }
+        @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
 
-        /* Grade para os gráficos ficarem lado a lado */
-        .dashboard-grid { 
-            display: grid; grid-template-columns: 1fr 1fr; gap: 30px; 
-            max-width: 1200px; margin: 0 auto; 
-        }
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 1200px; margin: auto; }
+        
+        /* Cards com efeito de vidro (Glassmorphism) */
         .chart-card { 
-            background: var(--card-bg); padding: 25px; border-radius: 20px; 
-            border: 1px solid #30363d; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: rgba(22, 27, 34, 0.8); padding: 25px; border-radius: 15px; 
+            border: 1px solid var(--neon); box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+            backdrop-filter: blur(10px);
         }
-        canvas { max-height: 400px; }
+        
+        .btn-refresh {
+            display: block; margin: 20px auto; padding: 12px 30px;
+            background: transparent; border: 2px solid var(--neon); color: var(--neon);
+            border-radius: 50px; cursor: pointer; transition: 0.4s;
+        }
+        .btn-refresh:hover { background: var(--neon); color: #000; box-shadow: 0 0 30px var(--neon); }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <h1>🚀 Financeiro ADS Pro</h1>
-        <button class="btn-refresh" onclick="carregarDados()">🔄 ATUALIZAR DADOS</button>
-    </div>
+    <h1>🛰️ Sistema de Monitoramento ADS</h1>
+    <button class="btn-refresh" onclick="carregarDados()">SYNCHRONIZE DATABASE</button>
 
     <div class="dashboard-grid">
-        <div class="chart-card">
-            <h3 style="text-align: center; color: #58a6ff;">📈 Fluxo de Caixa (C# Live)</h3>
-            <canvas id="lineChart"></canvas>
-        </div>
-
-        <div class="chart-card">
-            <h3 style="text-align: center; color: #d2a8ff;">🍕 Distribuição de Gastos</h3>
-            <canvas id="pieChart"></canvas>
-        </div>
+        <div class="chart-card"><canvas id="lineChart"></canvas></div>
+        <div class="chart-card"><canvas id="pieChart"></canvas></div>
     </div>
 
     <script>
-        let myLineChart, myPieChart;
+        let myLine, myPie;
 
         async function carregarDados() {
-            let labels, valores;
             try {
-                // Conectando com o seu motor C# local
                 const response = await fetch('http://localhost:5079/api/Financeiro/analytics');
-                const dados = await response.json();
-                labels = dados.map(item => item.dia);
-                valores = dados.map(item => item.valor);
-            } catch (error) {
-                // Fallback (Reserva) caso o motor esteja desligado
-                labels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
-                valores = [1200, 1800, 1400, 3200, 2900, 4500, 4100];
+                const data = await response.json();
+                render(data.fluxo.map(x => x.dia), data.fluxo.map(x => x.valor),
+                       data.gastos.map(x => x.categoria), data.gastos.map(x => x.valor));
+            } catch (e) {
+                // Fallback de Mestre
+                render(['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'], [1,2,1,4,3,9,5], 
+                       ['A', 'B', 'C', 'D'], [25, 25, 25, 25]);
             }
-            atualizarGraficos(labels, valores);
         }
 
-        function atualizarGraficos(labels, valores) {
-            const ctxLine = document.getElementById('lineChart').getContext('2d');
-            const ctxPie = document.getElementById('pieChart').getContext('2d');
-
-            // Se os gráficos já existem, destrói para criar novos (evita sobreposição)
-            if (myLineChart) myLineChart.destroy();
-            if (myPieChart) myPieChart.destroy();
-
-            // Gráfico de Linha Neon
-            myLineChart = new Chart(ctxLine, {
+        function render(lLabels, lValues, pLabels, pValues) {
+            if (myLine) myLine.destroy(); if (myPie) myPie.destroy(); // Limpeza de memória
+            
+            myLine = new Chart(document.getElementById('lineChart'), {
                 type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Saldo (R$)',
-                        data: valores,
-                        borderColor: '#00f2ff',
-                        backgroundColor: 'rgba(0, 242, 255, 0.1)',
-                        fill: true, tension: 0.4, borderWidth: 4
-                    }]
-                },
-                options: { plugins: { legend: { display: false } } }
+                data: { labels: lLabels, datasets: [{ label: 'Cash Flow', data: lValues, borderColor: '#00f2ff', fill: true, backgroundColor: 'rgba(0,242,255,0.1)', tension: 0.4 }] }
             });
 
-            // NOVO: Gráfico de Pizza Profissional
-            myPieChart = new Chart(ctxPie, {
+            myPie = new Chart(document.getElementById('pieChart'), {
                 type: 'pie',
-                data: {
-                    labels: ['Aluguel', 'Nuvem (Azure)', 'Salários', 'Marketing'],
-                    datasets: [{
-                        data: [3000, 1500, 5000, 2000],
-                        backgroundColor: ['#ff7b72', '#79c0ff', '#d2a8ff', '#f0883e'],
-                        borderWidth: 0
-                    }]
-                }
+                data: { labels: pLabels, datasets: [{ data: pValues, backgroundColor: ['#ff7b72', '#79c0ff', '#d2a8ff', '#f0883e'] }] }
             });
         }
-
         carregarDados();
     </script>
 </body>
